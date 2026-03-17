@@ -40,9 +40,13 @@ function generateQuizOptions(
       } else {
         return isChinese(c.translation) ? c.translation : c.word;
       }
-    });
+    })
+    .filter((text) => text !== correctAnswer);
 
-  const shuffled = [...others].sort(() => Math.random() - 0.5);
+  // Deduplicate to avoid showing the same option twice
+  const unique = [...new Set(others)];
+
+  const shuffled = [...unique].sort(() => Math.random() - 0.5);
   const wrongCount = optionCount - 1;
   const wrongOptions = shuffled.slice(0, wrongCount);
 
