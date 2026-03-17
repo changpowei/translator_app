@@ -9,6 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Mode = "login" | "signup";
 
+const ERROR_ZH: Record<string, string> = {
+  "Invalid login credentials": "帳號或密碼錯誤",
+  "Email not confirmed": "信箱尚未驗證，請檢查信箱",
+  "User already registered": "此信箱已註冊",
+  "Signup requires a valid password": "請輸入有效的密碼",
+  "Password should be at least 6 characters.": "密碼至少需要 6 個字元",
+};
+
+function localizeError(msg: string): string {
+  return ERROR_ZH[msg] ?? msg;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
@@ -32,7 +44,7 @@ export default function LoginPage() {
         password,
       });
       if (signUpError) {
-        setError(signUpError.message);
+        setError(localizeError(signUpError.message));
       } else {
         setMessage("註冊成功！請檢查信箱確認帳號。");
       }
@@ -42,7 +54,7 @@ export default function LoginPage() {
         password,
       });
       if (signInError) {
-        setError(signInError.message);
+        setError(localizeError(signInError.message));
       } else {
         router.push("/");
         router.refresh();
