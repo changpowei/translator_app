@@ -1,65 +1,163 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { TranslationInput } from "@/components/translation/TranslationInput";
+import { TranslationResult } from "@/components/translation/TranslationResult";
+import { TranslationSkeleton } from "@/components/translation/TranslationSkeleton";
+import { FlashcardDeck } from "@/components/flashcard/FlashcardDeck";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useFlashcards } from "@/hooks/useFlashcards";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function Home() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
+
+  const { input, result, isLoading, error, setInput, translate, clear } =
+    useTranslation();
+  const flashcards = useFlashcards();
+
+  const handleWordClick = useCallback(
+    (word: string) => {
+      setInput(word);
+      setTimeout(() => translate(), 100);
+    },
+    [setInput, translate]
+  );
+
+  // Refresh flashcards when a translation completes (new words may have been added)
+  useEffect(() => {
+    if (result && !isLoading) {
+      const timer = setTimeout(() => flashcards.fetchCards(), 1500);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, isLoading]);
+
+  // Keyboard shortcuts for flashcards
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in textarea or button
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "TEXTAREA" || tag === "INPUT") return;
+
+      switch (e.key) {
+        case " ":
+          e.preventDefault();
+          flashcards.flip();
+          break;
+        case "ArrowLeft":
+          flashcards.previous();
+          break;
+        case "ArrowRight":
+          flashcards.next();
+          break;
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+          if (flashcards.isFlipped) {
+            flashcards.rate(Number(e.key) as 1 | 2 | 3 | 4 | 5);
+          }
+          break;
+        case "Delete":
+        case "Backspace":
+          if (e.target === document.body) {
+            e.preventDefault();
+            flashcards.removeCard();
+          }
+          break;
+      }
+    },
+    [flashcards]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Show loading while checking auth
+  if (authLoading || !user) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="grid gap-6 lg:grid-cols-[1fr,340px]">
+      {/* Left: Translation */}
+      <div className="space-y-4">
+        <TranslationInput
+          value={input}
+          onChange={setInput}
+          onSubmit={translate}
+          onClear={clear}
+          isLoading={isLoading}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+        {error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        {isLoading && <TranslationSkeleton />}
+        {result && !isLoading && (
+          <TranslationResult result={result} onWordClick={handleWordClick} />
+        )}
+      </div>
+
+      {/* Right: Flashcards with integrated quiz */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">單字卡複習</h2>
+          <p className="text-[10px] text-muted-foreground">
+            Space 翻面 / 方向鍵切換 / 1-5 評分
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        {flashcards.isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : flashcards.error ? (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive">
+            {flashcards.error}
+          </div>
+        ) : (
+          <FlashcardDeck
+            cards={flashcards.cards}
+            currentCard={flashcards.currentCard}
+            currentIndex={flashcards.currentIndex}
+            isFlipped={flashcards.isFlipped}
+            mode={flashcards.mode}
+            quiz={flashcards.quiz}
+            currentStreak={flashcards.currentStreak}
+            autoRemoveThreshold={flashcards.autoRemoveThreshold}
+            onFlip={flashcards.flip}
+            onNext={flashcards.next}
+            onPrevious={flashcards.previous}
+            onRate={flashcards.rate}
+            onAnswerQuiz={flashcards.answerQuiz}
+            onForgot={flashcards.forgot}
+            onRemoveCard={() => flashcards.removeCard()}
+            onToggleMode={flashcards.toggleMode}
+            onShuffle={flashcards.shuffle}
+            onRefresh={flashcards.fetchCards}
+          />
+        )}
+      </div>
     </div>
   );
 }
