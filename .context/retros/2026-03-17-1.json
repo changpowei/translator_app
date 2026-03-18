@@ -1,0 +1,42 @@
+{
+  "date": "2026-03-17",
+  "window": "7d",
+  "metrics": {
+    "commits": 10,
+    "contributors": 1,
+    "prs_merged": 2,
+    "insertions": 20815,
+    "deletions": 3344,
+    "net_loc": 17471,
+    "test_loc": 373,
+    "test_ratio": 0.08,
+    "active_days": 2,
+    "sessions": 2,
+    "deep_sessions": 0,
+    "avg_session_minutes": 27,
+    "loc_per_session_hour": 9600,
+    "feat_pct": 0.50,
+    "fix_pct": 0.25,
+    "peak_hour": 19,
+    "ai_assisted_commits": 1
+  },
+  "authors": {
+    "c95cpw": {
+      "commits": 8,
+      "insertions": 20815,
+      "deletions": 3344,
+      "test_ratio": 0.08,
+      "top_area": "src/"
+    }
+  },
+  "version_range": ["0.1.0", "0.2.0.0"],
+  "streak_days": 2,
+  "backlog": {
+    "total_open": 3,
+    "p0_p1": 0,
+    "p2": 3,
+    "completed_this_period": 1,
+    "added_this_period": 0
+  },
+  "tweetable": "Week of Mar 10: 10 commits, 4.6k LOC (excl lock), 8% tests, 2 PRs, 2 sessions | Streak: 2d"
+}
