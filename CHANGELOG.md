@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1.0] - 2026-03-18
+
+### Added
+- API route 整合測試：`/api/translate` 共 19 個測試案例（認證、速率限制、輸入驗證、Gemini 備援鏈、回應正規化 6 分支、DB 儲存）
+- API route 整合測試：`/api/flashcards` 共 15 個測試案例（GET 加權排序、PATCH 熟悉度更新、POST quiz-correct 自動刪除、delete、未知 action）
+- CLAUDE.md 設定繁體中文回覆偏好
+- TODOS.md 新增 React Hook 測試待辦項目
+
+### Changed
+- 測試總數從 55 提升至 89（+34）
+
 ## [0.2.0.0] - 2026-03-17
 
 ### Added
